@@ -26,6 +26,8 @@ def fill_form(json_path: Path) -> None:
     with json_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
 
+    target_url = data.get("url")
+
     with sync_playwright() as p:
         context = p.chromium.launch_persistent_context(
             str(USER_DATA_DIR),
@@ -34,6 +36,12 @@ def fill_form(json_path: Path) -> None:
 
         # Attach to already-open form tab
         page = context.pages[0] if context.pages else context.new_page()
+
+        if target_url:
+            page.goto(target_url, wait_until="domcontentloaded")
+
+        if data.get("wait_for_manual", True):
+            input("Select the correct form, then press Enter to continue...")
 
         # Wait until form is ready
         page.wait_for_selector("#session_note_question_3")
