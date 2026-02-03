@@ -1,5 +1,10 @@
 import json
+from pathlib import Path
 from tkinter import Tk, filedialog
+
+from playwright.sync_api import sync_playwright
+
+USER_DATA_DIR = Path("playwright_user_data")
 
 def select_json_file():
     root = Tk()
@@ -16,19 +21,19 @@ def select_json_file():
 
     return file_path
 
-def fill_form():
+def fill_form(json_path: Path) -> None:
     # Load JSON
-    with open(JSON_PATH, "r", encoding="utf-8") as f:
+    with json_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
 
     with sync_playwright() as p:
         context = p.chromium.launch_persistent_context(
-            USER_DATA_DIR,
+            str(USER_DATA_DIR),
             headless=False
         )
 
         # Attach to already-open form tab
-        page = context.pages[0]
+        page = context.pages[0] if context.pages else context.new_page()
 
         # Wait until form is ready
         page.wait_for_selector("#session_note_question_3")
@@ -42,12 +47,9 @@ def fill_form():
         page.check("#session_note_question_2_yes")
 
         # --- JSON-DRIVEN FIELDS ---
-
         page.fill("#session_note_question_3", data["question_3"])
         page.fill("#session_note_question_4", data["question_4"])
         page.fill("#session_note_question_5", data["question_5"])
-
-        # Notes / Comments
         page.fill("#session_note_notes", data["notes"])
 
         print("✔ Session note fields populated. Review and submit manually.")
@@ -56,4 +58,5 @@ def fill_form():
         context.wait_for_event("close")
 
 if __name__ == "__main__":
-    fill_form()
+    JSON_PATH = Path(select_json_file())
+    fill_form(JSON_PATH)
