@@ -1,0 +1,59 @@
+import json
+from tkinter import Tk, filedialog
+
+def select_json_file():
+    root = Tk()
+    root.withdraw()  # hide empty Tk window
+    root.attributes("-topmost", True)
+
+    file_path = filedialog.askopenfilename(
+        title="Select session_answers.json",
+        filetypes=[("JSON files", "*.json")]
+    )
+
+    if not file_path:
+        raise FileNotFoundError("No file selected.")
+
+    return file_path
+
+def fill_form():
+    # Load JSON
+    with open(JSON_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    with sync_playwright() as p:
+        context = p.chromium.launch_persistent_context(
+            USER_DATA_DIR,
+            headless=False
+        )
+
+        # Attach to already-open form tab
+        page = context.pages[0]
+
+        # Wait until form is ready
+        page.wait_for_selector("#session_note_question_3")
+
+        # --- REQUIRED FIXED FIELDS ---
+
+        # Q1: Always checked
+        page.check("#session_note_question_1")
+
+        # Q2: Always YES
+        page.check("#session_note_question_2_yes")
+
+        # --- JSON-DRIVEN FIELDS ---
+
+        page.fill("#session_note_question_3", data["question_3"])
+        page.fill("#session_note_question_4", data["question_4"])
+        page.fill("#session_note_question_5", data["question_5"])
+
+        # Notes / Comments
+        page.fill("#session_note_notes", data["notes"])
+
+        print("✔ Session note fields populated. Review and submit manually.")
+
+        # Keep browser open
+        context.wait_for_event("close")
+
+if __name__ == "__main__":
+    fill_form()
