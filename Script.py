@@ -18,6 +18,7 @@ def select_json_file():
         title="Select session_answers.json",
         filetypes=[("JSON files", "*.json")]
     )
+    root.destroy()
 
     if not file_path:
         raise FileNotFoundError("No file selected.")
@@ -143,7 +144,7 @@ def fill_form(json_path: Path) -> None:
         if "users/sign_in" in page.url:
             page.wait_for_selector("input[type='email']")
             page.fill("input[type='email']", "thomas-hart@uiowa.edu")
-            page.fill("input[type='password']", "insert_password")
+            page.fill("input[type='password']", "Th@Rt@28")
             page.locator("input[type='password']").focus()
             print("🔐 Please update the password and complete sign in to continue.")
             page.wait_for_url(DASHBOARD_URL, wait_until="domcontentloaded")
