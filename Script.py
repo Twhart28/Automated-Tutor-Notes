@@ -145,8 +145,7 @@ def fill_form(json_path: Path) -> None:
             page.wait_for_selector("input[type='email']")
             page.fill("input[type='email']", "thomas-hart@uiowa.edu")
             page.fill("input[type='password']", "Th@Rt@28")
-            page.locator("input[type='password']").focus()
-            print("🔐 Please update the password and complete sign in to continue.")
+            page.locator("button[type='submit'], input[type='submit']").first.click()
             page.wait_for_url(DASHBOARD_URL, wait_until="domcontentloaded")
 
         pending_reports = collect_pending_reports(page)
