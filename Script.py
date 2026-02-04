@@ -1,3 +1,4 @@
+import argparse
 import json
 import re
 from pathlib import Path
@@ -22,6 +23,26 @@ def select_json_file():
         raise FileNotFoundError("No file selected.")
 
     return file_path
+
+
+def resolve_json_path() -> Path:
+    parser = argparse.ArgumentParser(
+        description="Populate session note fields from a JSON export."
+    )
+    parser.add_argument(
+        "json_path",
+        nargs="?",
+        help="Path to session_answers.json (optional if using the file picker).",
+    )
+    args = parser.parse_args()
+
+    if args.json_path:
+        return Path(args.json_path).expanduser().resolve()
+
+    try:
+        return Path(select_json_file())
+    except KeyboardInterrupt as exc:
+        raise SystemExit("File picker cancelled. Provide a JSON path to skip the dialog.") from exc
 
 def select_pending_report(reports):
     if not reports:
@@ -158,5 +179,7 @@ def fill_form(json_path: Path) -> None:
         context.wait_for_event("close")
 
 if __name__ == "__main__":
-    JSON_PATH = Path(select_json_file())
+    JSON_PATH = resolve_json_path()
+    if not JSON_PATH.exists():
+        raise FileNotFoundError(f"JSON file not found: {JSON_PATH}")
     fill_form(JSON_PATH)
