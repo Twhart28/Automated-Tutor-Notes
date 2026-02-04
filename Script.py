@@ -118,6 +118,15 @@ def fill_form(json_path: Path) -> None:
         page = context.pages[0] if context.pages else context.new_page()
 
         page.goto(DASHBOARD_URL, wait_until="domcontentloaded")
+
+        if "users/sign_in" in page.url:
+            page.wait_for_selector("input[type='email']")
+            page.fill("input[type='email']", "thomas-hart@uiowa.edu")
+            page.fill("input[type='password']", "insert_password")
+            page.locator("input[type='password']").focus()
+            print("🔐 Please update the password and complete sign in to continue.")
+            page.wait_for_url(DASHBOARD_URL, wait_until="domcontentloaded")
+
         pending_reports = collect_pending_reports(page)
         selection = select_pending_report(pending_reports)
 
